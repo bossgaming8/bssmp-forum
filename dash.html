@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BSSMP Staff Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1a1714;
+  --bg-raised: #252019;
+  --bg-card: #2e2820;
+  --bg-card-hover: #3a3228;
+  --bg-input: #1f1b16;
+  --border: #4a3f33;
+  --border-active: #e8b83a;
+  --gold: #e8b83a;
+  --gold-dim: #c49a2e;
+  --gold-glow: rgba(232,184,58,.15);
+  --gold-bright: #f5d04a;
+  --text: #f0e6d8;
+  --text-mid: #c4b8a8;
+  --text-dim: #9a8e7e;
+  --red: #e05048;
+  --red-bg: rgba(224,80,72,.12);
+  --green: #4cba58;
+  --green-bg: rgba(76,186,88,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;font-size:17px;line-height:1.7}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(232,184,58,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(232,184,58,.025) 1px,transparent 1px);background-size:20px 20px;pointer-events:none;z-index:0}
+.app{max-width:920px;margin:0 auto;padding:32px 20px 80px;position:relative;z-index:1}
+
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;flex-wrap:wrap;gap:14px}
+.hdr h1{font-family:'Press Start 2P',cursive;font-size:17px;color:var(--gold);text-shadow:0 0 30px rgba(232,184,58,.2)}
+.hdr .sub{font-family:'Press Start 2P',cursive;font-size:8px;color:var(--text-dim);letter-spacing:2px;margin-top:4px}
+.hdr .refresh-btn{padding:10px 18px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-mid);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .15s}
+.hdr .refresh-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+.setup-box{background:var(--bg-card);border:1px solid var(--gold-dim);padding:28px;margin-bottom:28px;text-align:center}
+.setup-box h3{font-family:'Press Start 2P',cursive;font-size:11px;color:var(--gold);margin-bottom:14px}
+.setup-box p{font-size:14px;color:var(--text-mid);margin-bottom:18px;line-height:1.7}
+.setup-box .url-row{display:flex;gap:8px;max-width:540px;margin:0 auto}
+.setup-box .url-row input{flex:1;font-size:13px}
+.setup-box .url-row button{padding:10px 18px;background:var(--gold);border:none;color:var(--bg);font-family:'Press Start 2P',cursive;font-size:9px;cursor:pointer;white-space:nowrap}
+
+input[type="text"],select{padding:10px 14px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);font-family:'Outfit',sans-serif;font-size:16px;outline:none;transition:border .2s}
+input:focus,select:focus{border-color:var(--border-active);box-shadow:0 0 0 3px var(--gold-glow)}
+select{cursor:pointer}option{background:var(--bg)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--bg-card);border:1px solid var(--border);padding:18px;text-align:center}
+.stat .num{font-family:'Press Start 2P',cursive;font-size:24px;color:var(--gold);display:block}
+.stat .lbl{font-size:13px;color:var(--text-dim);margin-top:8px;text-transform:uppercase;letter-spacing:1px}
+
+.tabs{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);padding:3px;margin-bottom:24px}
+.tabs button{flex:1;padding:12px;background:transparent;border:none;color:var(--text-dim);font-family:'Press Start 2P',cursive;font-size:8px;cursor:pointer;transition:all .2s;text-align:center}
+.tabs button:hover{color:var(--text);background:var(--bg-raised)}
+.tabs button.on{color:var(--gold);background:var(--bg-card)}
+.tab-panel{display:none}.tab-panel.on{display:block}
+
+.faction-bar{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);margin-bottom:6px}
+.faction-bar .fname{font-size:17px;font-weight:600;width:120px;flex-shrink:0}
+.faction-bar .bar-wrap{flex:1;height:12px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
+.faction-bar .bar-fill{height:100%;background:var(--gold);transition:width .5s ease}
+.faction-bar .avg{font-family:'Press Start 2P',cursive;font-size:12px;color:var(--gold);width:44px;text-align:right;flex-shrink:0}
+.faction-bar .votes{font-size:14px;color:var(--text-dim);width:65px;text-align:right;flex-shrink:0}
+
+.filters{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filters .f-label{font-size:14px;color:var(--text-dim);font-weight:700}
+.filters select{max-width:190px}
+.filters .f-clear{background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 14px;font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .15s}
+.filters .f-clear:hover{border-color:var(--red);color:var(--red)}
+
+.card{background:var(--bg-card);border:1px solid var(--border);padding:18px;margin-bottom:10px;transition:border-color .15s}
+.card:hover{border-color:var(--gold-dim)}
+.card-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:10px;flex-wrap:wrap}
+.card .user{font-weight:700;color:var(--text);font-size:17px}
+.card .pill{font-family:'Press Start 2P',cursive;font-size:7px;padding:4px 10px;background:var(--gold-glow);border:1px solid var(--border);color:var(--gold-dim);margin-left:8px;vertical-align:middle}
+.card .ts{font-size:13px;color:var(--text-dim)}
+.card .body{font-size:16px;color:var(--text-mid);line-height:1.8}
+.card .body strong{color:var(--text)}
+.card .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.card .tag{font-size:13px;padding:5px 10px;background:var(--bg);border:1px solid var(--border);color:var(--text-dim)}
+.card .tag.sev-high{border-color:rgba(224,80,72,.4);color:var(--red);background:var(--red-bg)}
+.card .tag.sev-mid{border-color:rgba(232,184,58,.4);color:var(--gold);background:var(--gold-glow)}
+.card .tag.sev-low{border-color:rgba(76,186,88,.3);color:var(--green);background:var(--green-bg)}
+.card .stars-display{color:var(--gold);font-size:16px;letter-spacing:2px}
+.card .stars-display .off{color:var(--border)}
+.card .reporter-line{margin-top:10px;font-size:14px;color:var(--text-dim)}
+.card .reporter-line strong{color:var(--text-mid)}
+
+.section-title{font-family:'Press Start 2P',cursive;font-size:10px;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:10px;letter-spacing:1px}
+.section-title .cnt{font-family:'Outfit',sans-serif;background:var(--gold-glow);border:1px solid var(--border);padding:3px 10px;font-size:14px;color:var(--text-dim)}
+
+.empty{text-align:center;padding:48px 20px;color:var(--text-dim);font-size:14px}
+.empty .ei{font-size:32px;margin-bottom:12px;display:block}
+
+.loading{text-align:center;padding:60px 20px;color:var(--text-dim);font-size:14px}
+.loading .spin{display:inline-block;animation:spin 1s linear infinite;font-size:24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.error-box{background:var(--red-bg);border:1px solid rgba(224,80,72,.3);padding:18px;text-align:center;color:#e8a8a4;font-size:17px;margin-bottom:20px;line-height:1.7}
+.error-box b{color:var(--red);display:block;margin-bottom:8px;font-family:'Press Start 2P',cursive;font-size:9px}
+
+.footer{text-align:center;margin-top:44px;padding-top:22px;border-top:1px solid var(--border);font-size:13px;color:var(--text-dim);line-height:2}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.app{animation:fadeIn .4s ease-out}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <div>
+      <h1>🔒 BSSMP STAFF DASHBOARD</h1>
+      <div class="sub">LOCAL ONLY — DO NOT SHARE THIS FILE</div>
+    </div>
+    <button class="refresh-btn" onclick="loadData()">⟳ REFRESH</button>
+  </div>
+
+  <div class="setup-box" id="setup-box">
+    <h3>⚙️ CONNECT TO BACKEND</h3>
+    <p>Paste your Google Apps Script URL below.<br>This is saved in your browser only — no one else can see it.</p>
+    <div class="url-row">
+      <input type="text" id="api-url-input" placeholder="https://script.google.com/macros/s/...">
+      <button onclick="saveUrl()">CONNECT</button>
+    </div>
+  </div>
+
+  <div id="dash-content" style="display:none">
+    <div class="stats" id="stats-bar"></div>
+
+    <div style="margin-bottom:28px">
+      <div class="section-title">⚔️ FACTION SPORTSMANSHIP AVERAGES</div>
+      <div id="faction-bars"></div>
+    </div>
+
+    <div class="tabs">
+      <button class="on" onclick="switchTab('reports')">🚩 REPORTS</button>
+      <button onclick="switchTab('feedback')">📋 FEEDBACK</button>
+      <button onclick="switchTab('ratings')">⚔️ RATINGS</button>
+    </div>
+
+    <div class="tab-panel on" id="tp-reports">
+      <div class="filters">
+        <span class="f-label">Filter:</span>
+        <select id="f-sev" onchange="renderAll()"><option value="">All Severities</option><option value="5">5 — Critical</option><option value="4">4 — Severe</option><option value="3">3 — Serious</option><option value="2">2 — Moderate</option><option value="1">1 — Minor</option></select>
+        <select id="f-fac" onchange="renderAll()"><option value="">All Factions</option><option>Monarch</option><option>Nautilus</option><option>Panda Isles</option><option>Independent</option></select>
+        <button class="f-clear" onclick="document.getElementById('f-sev').value='';document.getElementById('f-fac').value='';renderAll()">Clear</button>
+      </div>
+      <div id="report-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tp-feedback">
+      <div id="feedback-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tp-ratings">
+      <div id="rating-list"></div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading" style="display:none">
+    <span class="spin">⚙️</span><br><br>Loading submissions...
+  </div>
+
+  <div class="error-box" id="error-box" style="display:none"></div>
+
+  <div class="footer">BSSMP Staff Dashboard — For bhored's eyes only<br><span style="opacity:.5">Data pulled from your private Google Sheet</span></div>
+</div>
+
+<script>
+let DATA = { feedback: [], factions: [], reports: [] };
+
+function getUrl() { return localStorage.getItem('bssmp_api_url') || ''; }
+
+function saveUrl() {
+  const url = document.getElementById('api-url-input').value.trim();
+  if (!url || !url.startsWith('https://script.google.com')) {
+    alert('Paste a valid Google Apps Script URL starting with https://script.google.com');
+    return;
+  }
+  localStorage.setItem('bssmp_api_url', url);
+  document.getElementById('setup-box').style.display = 'none';
+  loadData();
+}
+
+function init() {
+  const url = getUrl();
+  if (url) {
+    document.getElementById('setup-box').style.display = 'none';
+    loadData();
+  }
+}
+
+async function loadData() {
+  const url = getUrl();
+  if (!url) return;
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('dash-content').style.display = 'none';
+  document.getElementById('error-box').style.display = 'none';
+
+  try {
+    const resp = await fetch(url + '?action=read&secret=bssmp_staff_read');
+    const json = await resp.json();
+
+    if (json.status === 'ok') {
+      DATA = json.data;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('dash-content').style.display = 'block';
+      renderAll();
+    } else {
+      showError(json.message || 'Unknown error from backend');
+    }
+  } catch(e) {
+    showError('Failed to connect. Make sure you created the Apps Script <strong>from inside a Google Sheet</strong> (Extensions → Apps Script), not from script.google.com directly.<br><br><code style="font-size:11px">' + e.message + '</code>');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-box').style.display = 'block';
+  document.getElementById('error-box').innerHTML = '<b>⚠ CONNECTION ERROR</b>' + msg;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tabs button').forEach((b,i) => b.classList.toggle('on', ['reports','feedback','ratings'][i]===tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('on'));
+  document.getElementById('tp-'+tab).classList.add('on');
+}
+
+function esc(s) { if(!s) return ''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function fmtDate(iso) {
+  try { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}); }
+  catch { return iso||''; }
+}
+
+function starsHTML(n, max) {
+  let s='';
+  for(let i=1;i<=max;i++) s += i<=n ? '★' : '<span class="off">★</span>';
+  return s;
+}
+
+function renderAll() {
+  const fb = DATA.feedback||[];
+  const fr = DATA.factions||[];
+  const rp = DATA.reports||[];
+
+  const ratedFb = fb.filter(f=>f.rating);
+  const avg = ratedFb.length ? (ratedFb.reduce((s,f)=>s+parseFloat(f.rating),0)/ratedFb.length).toFixed(1) : '—';
+  const severe = rp.filter(r=>parseInt(r.severity)>=4).length;
+
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat"><span class="num">${fb.length}</span><span class="lbl">Feedback</span></div>
+    <div class="stat"><span class="num">${fr.length}</span><span class="lbl">Faction Votes</span></div>
+    <div class="stat"><span class="num">${rp.length}</span><span class="lbl">Reports</span></div>
+    <div class="stat"><span class="num" ${severe>0?'style="color:var(--red)"':''}>${severe}</span><span class="lbl">Severe (4-5)</span></div>
+  `;
+
+  // Faction bars
+  const factions = [{name:'Monarch',key:'monarch'},{name:'Nautilus',key:'nautilus'},{name:'Panda Isles',key:'panda'},{name:'Independents',key:'indie'}];
+  document.getElementById('faction-bars').innerHTML = factions.map(f => {
+    const vals = fr.map(r=>parseFloat(r[f.key])).filter(v=>!isNaN(v)&&v>0);
+    const a = vals.length ? vals.reduce((x,y)=>x+y,0)/vals.length : 0;
+    return `<div class="faction-bar"><div class="fname">${f.name}</div><div class="bar-wrap"><div class="bar-fill" style="width:${(a/5*100).toFixed(0)}%"></div></div><div class="avg">${vals.length?a.toFixed(1):'—'}</div><div class="votes">${vals.length} vote${vals.length!==1?'s':''}</div></div>`;
+  }).join('');
+
+  // Reports
+  const sevF = document.getElementById('f-sev').value;
+  const facF = document.getElementById('f-fac').value;
+  let fRp = rp.slice().reverse();
+  if(sevF) fRp = fRp.filter(r=>r.severity===sevF);
+  if(facF) fRp = fRp.filter(r=>(r.targetFaction||'').toLowerCase().includes(facF.toLowerCase())||r.reporterFaction===facF);
+
+  document.getElementById('report-list').innerHTML = fRp.length ? fRp.map(r => {
+    const sev = parseInt(r.severity)||0;
+    const sc = sev>=4?'sev-high':sev>=3?'sev-mid':'sev-low';
+    return `<div class="card">
+      <div class="card-hd">
+        <div><span class="user">${esc(r.target)}</span>${r.targetFaction?`<span class="pill">${esc(r.targetFaction)}</span>`:''}</div>
+        <span class="ts">${fmtDate(r.timestamp)}</span>
+      </div>
+      <div class="body">${esc(r.description)}</div>
+      <div class="meta">
+        <span class="tag ${sc}">SEV ${r.severity||'?'}/5</span>
+        ${(r.violations||'').split(', ').filter(Boolean).map(v=>`<span class="tag">${esc(v)}</span>`).join('')}
+      </div>
+      <div class="reporter-line">
+        Filed by <strong>${esc(r.reporter)}</strong> (${esc(r.reporterFaction)})
+        ${r.witnesses?` · Witnesses: ${esc(r.witnesses)}`:''}
+        ${r.evidence?` · ${esc(r.evidence)}`:''}
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty"><span class="ei">🚩</span>No reports match filters</div>';
+
+  // Feedback
+  document.getElementById('feedback-list').innerHTML = fb.length ? fb.slice().reverse().map(f => `<div class="card">
+    <div class="card-hd">
+      <div><span class="user">${esc(f.user)}</span><span class="pill">${esc(f.faction)}</span></div>
+      <span class="ts">${fmtDate(f.timestamp)}</span>
+    </div>
+    <div class="body">
+      ${f.rating?`<div class="stars-display" style="margin-bottom:8px">${starsHTML(parseInt(f.rating),5)}</div>`:''}
+      ${f.enjoys?`<strong>Enjoys:</strong> ${esc(f.enjoys)}<br>`:''}
+      ${f.improvements?`<strong>Would change:</strong> ${esc(f.improvements)}<br>`:''}
+      ${f.shoutouts?`<strong>Shoutouts:</strong> ${esc(f.shoutouts)}`:''}
+    </div>
+    ${f.tenure?`<div class="meta"><span class="tag">${esc(f.tenure)}</span></div>`:''}
+  </div>`).join('') : '<div class="empty"><span class="ei">📋</span>No feedback yet</div>';
+
+  // Faction ratings
+  document.getElementById('rating-list').innerHTML = fr.length ? fr.slice().reverse().map(f => {
+    const lines = [];
+    if(f.monarch) lines.push(`<strong>Monarch:</strong> <span class="stars-display">${starsHTML(parseInt(f.monarch),5)}</span>${f.monarchComment?' — '+esc(f.monarchComment):''}`);
+    if(f.nautilus) lines.push(`<strong>Nautilus:</strong> <span class="stars-display">${starsHTML(parseInt(f.nautilus),5)}</span>${f.nautilusComment?' — '+esc(f.nautilusComment):''}`);
+    if(f.panda) lines.push(`<strong>Panda Isles:</strong> <span class="stars-display">${starsHTML(parseInt(f.panda),5)}</span>${f.pandaComment?' — '+esc(f.pandaComment):''}`);
+    if(f.indie) lines.push(`<strong>Independents:</strong> <span class="stars-display">${starsHTML(parseInt(f.indie),5)}</span>${f.indieComment?' — '+esc(f.indieComment):''}`);
+    return `<div class="card">
+      <div class="card-hd">
+        <div><span class="user">${esc(f.user)}</span><span class="pill">${esc(f.faction)}</span></div>
+        <span class="ts">${fmtDate(f.timestamp)}</span>
+      </div>
+      <div class="body">
+        ${lines.join('<br>')}
+        ${f.bestFaction?`<br><br><strong style="color:var(--green)">Best faction:</strong> ${esc(f.bestFaction)}`:''}
+        ${f.concerns?`<br><strong style="color:var(--red)">Concerns:</strong> ${esc(f.concerns)}`:''}
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty"><span class="ei">⚔️</span>No faction ratings yet</div>';
+}
+
+init();
+</script>
+</body>
+</html>
