@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banana Sandwich SMP — Community Forum</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #12100e;
+  --bg-raised: #1c1916;
+  --bg-card: #231f1b;
+  --bg-card-hover: #2d2824;
+  --bg-input: #161310;
+  --border: #342d26;
+  --border-active: #d4a12a;
+  --gold: #d4a12a;
+  --gold-dim: #a07c1f;
+  --gold-glow: rgba(212, 161, 42, 0.12);
+  --gold-bright: #f0c942;
+  --text: #ddd2c4;
+  --text-dim: #8a7e72;
+  --text-bright: #f5efe8;
+  --red: #c94038;
+  --red-bg: rgba(201, 64, 56, 0.1);
+  --green: #3da352;
+  --green-bg: rgba(61, 163, 82, 0.1);
+  --blue: #3a8fd4;
+  --blue-bg: rgba(58, 143, 212, 0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;min-height:100vh;font-size:13px;line-height:1.6}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(212,161,42,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(212,161,42,.02) 1px,transparent 1px);background-size:20px 20px;pointer-events:none;z-index:0}
+
+.app{max-width:800px;margin:0 auto;padding:32px 16px 80px;position:relative;z-index:1}
+
+/* Header */
+.hdr{text-align:center;margin-bottom:36px}
+.hdr h1{font-family:'Press Start 2P',cursive;font-size:18px;color:var(--gold);line-height:1.8;text-shadow:0 0 40px rgba(212,161,42,.2)}
+.hdr .sub{font-family:'Press Start 2P',cursive;font-size:8px;color:var(--text-dim);letter-spacing:4px;margin-top:10px;text-transform:uppercase}
+.hdr p{font-size:12px;color:var(--text-dim);margin-top:16px;max-width:500px;margin-inline:auto}
+.hdr-line{width:80px;height:3px;background:var(--gold);margin:20px auto 0;box-shadow:0 0 16px var(--gold-glow)}
+
+.notice{background:var(--red-bg);border:1px solid rgba(201,64,56,.2);border-left:3px solid var(--red);padding:12px 16px;margin-bottom:28px;font-size:11px;line-height:1.7;color:#d4948f}
+.notice b{color:var(--red);font-family:'Press Start 2P',cursive;font-size:8px;display:block;margin-bottom:4px}
+
+/* Nav Tabs */
+.nav{display:flex;gap:2px;margin-bottom:28px;background:var(--bg);border:1px solid var(--border);padding:3px}
+.nav button{flex:1;padding:12px 6px;background:transparent;border:none;color:var(--text-dim);font-family:'Press Start 2P',cursive;font-size:7px;cursor:pointer;transition:all .2s;letter-spacing:.5px;position:relative;text-align:center;line-height:1.6}
+.nav button:hover{color:var(--text);background:var(--bg-raised)}
+.nav button.on{color:var(--gold);background:var(--bg-card)}
+.nav button .ico{display:block;font-size:14px;margin-bottom:4px}
+
+/* Panels */
+.panel{display:none}.panel.on{display:block}
+
+/* Form Elements */
+.fg{margin-bottom:20px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:.3px}
+.fg .req{color:var(--red)}
+.fg .hint{display:block;font-weight:400;color:var(--text-dim);font-size:10px;margin-top:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+
+input[type="text"],textarea,select{width:100%;padding:10px 12px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border .2s,box-shadow .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--border-active);box-shadow:0 0 0 3px var(--gold-glow)}
+textarea{resize:vertical;min-height:90px}
+select{cursor:pointer}option{background:var(--bg)}
+
+.err-field{border-color:var(--red)!important}
+.err-msg{color:var(--red);font-size:10px;margin-top:3px;display:none}
+.err-msg.show{display:block}
+
+hr.div{border:none;border-top:1px dashed var(--border);margin:24px 0}
+
+/* Checkboxes */
+.chk-group{display:flex;flex-wrap:wrap;gap:6px}
+.chk{display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--bg-input);border:1px solid var(--border);cursor:pointer;font-size:11px;transition:all .15s;user-select:none}
+.chk:hover{border-color:var(--gold-dim);background:var(--bg-card-hover)}
+.chk input{display:none}
+.chk .bx{width:12px;height:12px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .15s}
+.chk:has(input:checked){border-color:var(--gold);background:var(--gold-glow);color:var(--gold)}
+.chk:has(input:checked) .bx{border-color:var(--gold);background:var(--gold);color:var(--bg)}
+
+/* Scale */
+.scale{display:flex;gap:0}
+.sopt{flex:1;padding:10px 4px;text-align:center;font-size:9px;border:1px solid var(--border);cursor:pointer;transition:all .15s;color:var(--text-dim);user-select:none}
+.sopt+.sopt{border-left:none}
+.sopt:hover{background:var(--bg-card-hover)}
+.sopt input{display:none}
+.sopt:has(input:checked){background:var(--gold-glow);border-color:var(--gold);color:var(--gold);font-weight:700}
+.sopt .sn{font-family:'Press Start 2P',cursive;font-size:11px;display:block;margin-bottom:3px}
+
+/* Stars */
+.star-block{margin-bottom:14px;padding:12px 14px;background:var(--bg-input);border:1px solid var(--border)}
+.star-hd{font-size:11px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ftag{font-family:'Press Start 2P',cursive;font-size:7px;padding:3px 7px;background:rgba(212,161,42,.08);border:1px solid var(--border);color:var(--gold-dim)}
+.stars{display:flex;gap:4px;direction:rtl;justify-content:flex-end}
+.stars input{display:none}
+.stars label{font-size:20px;color:var(--border);cursor:pointer;transition:color .12s,transform .12s;margin:0}
+.stars label:hover,.stars label:hover~label,.stars input:checked~label{color:var(--gold);transform:scale(1.1)}
+.star-cmt{margin-top:8px}
+.star-cmt input{font-size:11px;padding:7px 10px}
+
+/* Submit Button */
+.submit{width:100%;padding:14px;background:var(--gold);border:none;color:var(--bg);font-family:'Press Start 2P',cursive;font-size:10px;cursor:pointer;letter-spacing:2px;transition:all .2s;margin-top:12px}
+.submit:hover{background:var(--gold-bright);transform:translateY(-1px);box-shadow:0 4px 20px rgba(212,161,42,.25)}
+.submit:active{transform:translateY(0)}
+.submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.submit.danger{background:var(--red)}
+.submit.danger:hover{background:#d94a3d}
+
+/* Success */
+.success{display:none;text-align:center;padding:50px 20px}
+.success.show{display:block}
+.success .si{font-size:40px;margin-bottom:16px}
+.success h3{font-family:'Press Start 2P',cursive;font-size:12px;color:var(--green);margin-bottom:12px}
+.success p{color:var(--text-dim);font-size:12px}
+.success .rst{margin-top:24px;padding:10px 24px;background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s}
+.success .rst:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ====== DASHBOARD ====== */
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+@media(max-width:600px){.dash-stats{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);padding:14px;text-align:center}
+.stat-card .num{font-family:'Press Start 2P',cursive;font-size:20px;color:var(--gold);display:block}
+.stat-card .lbl{font-size:9px;color:var(--text-dim);margin-top:6px;text-transform:uppercase;letter-spacing:1px}
+
+.dash-section{margin-bottom:28px}
+.dash-title{font-family:'Press Start 2P',cursive;font-size:9px;color:var(--gold);margin-bottom:12px;letter-spacing:1px;display:flex;align-items:center;gap:8px}
+.dash-title .count{font-family:'JetBrains Mono',monospace;background:var(--gold-glow);border:1px solid var(--border);padding:2px 8px;font-size:10px;color:var(--text-dim)}
+
+/* Faction Summary Bars */
+.faction-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);margin-bottom:6px}
+.faction-bar .fname{font-size:11px;font-weight:700;width:110px;flex-shrink:0}
+.faction-bar .bar-wrap{flex:1;height:8px;background:var(--bg);border:1px solid var(--border);position:relative;overflow:hidden}
+.faction-bar .bar-fill{height:100%;background:var(--gold);transition:width .4s ease}
+.faction-bar .avg{font-family:'Press Start 2P',cursive;font-size:9px;color:var(--gold);width:40px;text-align:right;flex-shrink:0}
+.faction-bar .votes{font-size:9px;color:var(--text-dim);width:50px;text-align:right;flex-shrink:0}
+
+/* Data Cards */
+.d-card{background:var(--bg-card);border:1px solid var(--border);padding:14px 16px;margin-bottom:8px;transition:border-color .15s}
+.d-card:hover{border-color:var(--gold-dim)}
+.d-card-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.d-card .user{font-weight:700;color:var(--text-bright);font-size:12px}
+.d-card .faction-pill{font-family:'Press Start 2P',cursive;font-size:6px;padding:3px 8px;background:var(--gold-glow);border:1px solid var(--border);color:var(--gold-dim);margin-left:6px}
+.d-card .ts{font-size:9px;color:var(--text-dim)}
+.d-card .body{font-size:11px;color:var(--text-dim);line-height:1.7}
+.d-card .body strong{color:var(--text)}
+.d-card .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.d-card .tag{font-size:9px;padding:3px 8px;background:var(--bg);border:1px solid var(--border);color:var(--text-dim)}
+.d-card .tag.sev-high{border-color:rgba(201,64,56,.4);color:var(--red);background:var(--red-bg)}
+.d-card .tag.sev-mid{border-color:rgba(212,161,42,.4);color:var(--gold);background:var(--gold-glow)}
+.d-card .rating-stars{color:var(--gold);font-size:13px;letter-spacing:2px}
+.d-card .rating-stars .off{color:var(--border)}
+
+.d-card .del-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-size:10px;padding:3px 8px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s;margin-top:8px}
+.d-card .del-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+
+/* Filter bar */
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filters select{padding:6px 10px;font-size:11px;max-width:180px}
+.filters .f-clear{background:none;border:1px solid var(--border);color:var(--text-dim);padding:6px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+.filters .f-clear:hover{border-color:var(--red);color:var(--red)}
+
+.empty{text-align:center;padding:40px 20px;color:var(--text-dim);font-size:12px}
+.empty .ei{font-size:28px;margin-bottom:12px;display:block}
+
+/* Danger zone */
+.danger-zone{margin-top:40px;padding-top:20px;border-top:1px solid var(--border)}
+.danger-zone h4{font-family:'Press Start 2P',cursive;font-size:8px;color:var(--red);margin-bottom:8px}
+.danger-zone p{font-size:11px;color:var(--text-dim);margin-bottom:12px}
+.danger-zone button{padding:8px 16px;background:transparent;border:1px solid rgba(201,64,56,.3);color:var(--red);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+.danger-zone button:hover{background:var(--red-bg);border-color:var(--red)}
+
+.footer{text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid var(--border);font-size:9px;color:var(--text-dim);line-height:2}
+
+/* Password Gate */
+.pw-gate{text-align:center;padding:50px 20px}
+.pw-gate .lock-ico{font-size:36px;margin-bottom:16px;display:block}
+.pw-gate h3{font-family:'Press Start 2P',cursive;font-size:11px;color:var(--red);margin-bottom:8px}
+.pw-gate p{font-size:11px;color:var(--text-dim);margin-bottom:20px}
+.pw-gate .pw-row{display:flex;gap:8px;max-width:320px;margin:0 auto}
+.pw-gate .pw-row input{flex:1}
+.pw-gate .pw-row button{padding:10px 16px;background:var(--gold);border:none;color:var(--bg);font-family:'Press Start 2P',cursive;font-size:8px;cursor:pointer;letter-spacing:1px;white-space:nowrap;transition:all .2s}
+.pw-gate .pw-row button:hover{background:var(--gold-bright)}
+.pw-err{color:var(--red);font-size:10px;margin-top:10px;display:none}
+.pw-err.show{display:block}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.app{animation:fadeIn .4s ease-out}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <h1>BANANA SANDWICH</h1>
+    <div class="sub">SMP Community Forum</div>
+    <p>Your voice matters. All submissions are <strong style="color:var(--gold)">tied to your username</strong> — no anonymous posts.</p>
+    <div class="hdr-line"></div>
+  </div>
+
+  <div class="notice">
+    <b>⚠ STAFF NOTICE</b>
+    This form is not anonymous. Toxic, threatening, or harassing submissions will result in disciplinary action. Honest feedback — even critical — is always welcome.
+  </div>
+
+  <div class="nav" id="nav">
+    <button class="on" onclick="go('feedback')"><span class="ico">📋</span>FEEDBACK</button>
+    <button onclick="go('factions')"><span class="ico">⚔️</span>FACTIONS</button>
+    <button onclick="go('report')"><span class="ico">🚩</span>REPORT</button>
+    <button onclick="go('dashboard')"><span class="ico">📊</span>STAFF VIEW</button>
+  </div>
+
+  <!-- ========== FEEDBACK ========== -->
+  <div class="panel on" id="p-feedback">
+    <div class="row">
+      <div class="fg"><label>Minecraft Username <span class="req">*</span></label><input type="text" id="fb-user" placeholder="e.g. Steve_2024"><div class="err-msg" id="e-fb-user">Required</div></div>
+      <div class="fg"><label>Your Faction <span class="req">*</span></label>
+        <select id="fb-fac"><option value="">Select...</option><option>Monarch</option><option>Nautilus</option><option>Panda Isles</option><option>Independent</option><option>Other</option></select>
+        <div class="err-msg" id="e-fb-fac">Required</div>
+      </div>
+    </div>
+    <div class="fg"><label>How long on the server?</label>
+      <select id="fb-tenure"><option value="">Select...</option><option>&lt;1 week</option><option>1–4 weeks</option><option>1–3 months</option><option>3+ months (OG)</option></select>
+    </div>
+    <hr class="div">
+    <div class="fg"><label>What do you enjoy most? <span class="hint">Check all that apply</span></label>
+      <div class="chk-group" id="fb-enjoys">
+        <label class="chk"><input type="checkbox" value="Building"><span class="bx">✓</span>Building</label>
+        <label class="chk"><input type="checkbox" value="PvP"><span class="bx">✓</span>PvP</label>
+        <label class="chk"><input type="checkbox" value="Community"><span class="bx">✓</span>Community</label>
+        <label class="chk"><input type="checkbox" value="Factions"><span class="bx">✓</span>Factions</label>
+        <label class="chk"><input type="checkbox" value="Events"><span class="bx">✓</span>Events</label>
+        <label class="chk"><input type="checkbox" value="Vanilla Feel"><span class="bx">✓</span>Vanilla</label>
+        <label class="chk"><input type="checkbox" value="Voice Chat"><span class="bx">✓</span>Voice Chat</label>
+        <label class="chk"><input type="checkbox" value="Exploration"><span class="bx">✓</span>Exploration</label>
+      </div>
+    </div>
+    <div class="fg"><label>Overall server rating <span class="req">*</span></label>
+      <div class="scale">
+        <label class="sopt"><input type="radio" name="fb-rate" value="1"><span class="sn">1</span>Poor</label>
+        <label class="sopt"><input type="radio" name="fb-rate" value="2"><span class="sn">2</span>Okay</label>
+        <label class="sopt"><input type="radio" name="fb-rate" value="3"><span class="sn">3</span>Good</label>
+        <label class="sopt"><input type="radio" name="fb-rate" value="4"><span class="sn">4</span>Great</label>
+        <label class="sopt"><input type="radio" name="fb-rate" value="5"><span class="sn">5</span>Amazing</label>
+      </div>
+    </div>
+    <div class="fg"><label>What would you change or improve?</label><textarea id="fb-improve" placeholder="Be honest — new features, rule changes, things that bother you..."></textarea></div>
+    <div class="fg"><label>Shoutouts — who makes this server great?</label><textarea id="fb-shout" placeholder="Name players or staff who deserve recognition..." style="min-height:60px"></textarea></div>
+    <button class="submit" onclick="submitForm('feedback')">SUBMIT FEEDBACK →</button>
+  </div>
+
+  <!-- ========== FACTIONS ========== -->
+  <div class="panel" id="p-factions">
+    <div class="row">
+      <div class="fg"><label>Minecraft Username <span class="req">*</span></label><input type="text" id="fr-user" placeholder="Your username"><div class="err-msg" id="e-fr-user">Required</div></div>
+      <div class="fg"><label>Your Faction <span class="req">*</span></label>
+        <select id="fr-fac"><option value="">Select...</option><option>Monarch</option><option>Nautilus</option><option>Panda Isles</option><option>Independent</option><option>Other</option></select>
+      </div>
+    </div>
+    <hr class="div">
+    <div id="faction-rates">
+      <div class="star-block"><div class="star-hd"><span class="ftag">MONARCH</span> Sportsmanship & Behavior</div><div class="stars"><input type="radio" id="mo5" name="r-monarch" value="5"><label for="mo5">★</label><input type="radio" id="mo4" name="r-monarch" value="4"><label for="mo4">★</label><input type="radio" id="mo3" name="r-monarch" value="3"><label for="mo3">★</label><input type="radio" id="mo2" name="r-monarch" value="2"><label for="mo2">★</label><input type="radio" id="mo1" name="r-monarch" value="1"><label for="mo1">★</label></div><div class="star-cmt"><input type="text" placeholder="Optional: explain your rating..." id="c-monarch"></div></div>
+      <div class="star-block"><div class="star-hd"><span class="ftag">NAUTILUS</span> Sportsmanship & Behavior</div><div class="stars"><input type="radio" id="na5" name="r-nautilus" value="5"><label for="na5">★</label><input type="radio" id="na4" name="r-nautilus" value="4"><label for="na4">★</label><input type="radio" id="na3" name="r-nautilus" value="3"><label for="na3">★</label><input type="radio" id="na2" name="r-nautilus" value="2"><label for="na2">★</label><input type="radio" id="na1" name="r-nautilus" value="1"><label for="na1">★</label></div><div class="star-cmt"><input type="text" placeholder="Optional: explain your rating..." id="c-nautilus"></div></div>
+      <div class="star-block"><div class="star-hd"><span class="ftag">PANDA ISLES</span> Sportsmanship & Behavior</div><div class="stars"><input type="radio" id="pa5" name="r-panda" value="5"><label for="pa5">★</label><input type="radio" id="pa4" name="r-panda" value="4"><label for="pa4">★</label><input type="radio" id="pa3" name="r-panda" value="3"><label for="pa3">★</label><input type="radio" id="pa2" name="r-panda" value="2"><label for="pa2">★</label><input type="radio" id="pa1" name="r-panda" value="1"><label for="pa1">★</label></div><div class="star-cmt"><input type="text" placeholder="Optional: explain your rating..." id="c-panda"></div></div>
+      <div class="star-block"><div class="star-hd"><span class="ftag">INDEPENDENTS</span> Sportsmanship & Behavior</div><div class="stars"><input type="radio" id="in5" name="r-indie" value="5"><label for="in5">★</label><input type="radio" id="in4" name="r-indie" value="4"><label for="in4">★</label><input type="radio" id="in3" name="r-indie" value="3"><label for="in3">★</label><input type="radio" id="in2" name="r-indie" value="2"><label for="in2">★</label><input type="radio" id="in1" name="r-indie" value="1"><label for="in1">★</label></div><div class="star-cmt"><input type="text" placeholder="Optional: explain your rating..." id="c-indie"></div></div>
+    </div>
+    <hr class="div">
+    <div class="fg"><label>Which faction has the best sportsmanship? Why?</label><textarea id="fr-best" placeholder="Who plays fair, keeps it fun, and represents what the server is about?"></textarea></div>
+    <div class="fg"><label>Any faction behavior concerns?</label><textarea id="fr-concerns" placeholder="Describe toxic behavior, exploits, bullying, or unsportsmanlike conduct..."></textarea></div>
+    <button class="submit" onclick="submitForm('factions')">SUBMIT RATINGS →</button>
+  </div>
+
+  <!-- ========== REPORT ========== -->
+  <div class="panel" id="p-report">
+    <div class="row">
+      <div class="fg"><label>Your Username <span class="req">*</span></label><input type="text" id="rp-user" placeholder="Your username"><div class="err-msg" id="e-rp-user">Required</div></div>
+      <div class="fg"><label>Your Faction <span class="req">*</span></label>
+        <select id="rp-fac"><option value="">Select...</option><option>Monarch</option><option>Nautilus</option><option>Panda Isles</option><option>Independent</option><option>Other</option></select>
+      </div>
+    </div>
+    <hr class="div">
+    <div class="row">
+      <div class="fg"><label>Player Being Reported <span class="req">*</span></label><input type="text" id="rp-target" placeholder="Exact username"><div class="err-msg" id="e-rp-target">Required</div></div>
+      <div class="fg"><label>Their Faction (if known)</label><input type="text" id="rp-tfac" placeholder="e.g. Monarch"></div>
+    </div>
+    <div class="fg"><label>Type of Violation <span class="req">*</span><span class="hint">Check all that apply</span></label>
+      <div class="chk-group" id="rp-violations">
+        <label class="chk"><input type="checkbox" value="Verbal Abuse / Hate Speech"><span class="bx">✓</span>Verbal Abuse</label>
+        <label class="chk"><input type="checkbox" value="Death Threats / KYS"><span class="bx">✓</span>Death Threats / KYS</label>
+        <label class="chk"><input type="checkbox" value="Exploiting / Cheating"><span class="bx">✓</span>Exploiting</label>
+        <label class="chk"><input type="checkbox" value="Griefing"><span class="bx">✓</span>Griefing</label>
+        <label class="chk"><input type="checkbox" value="VC Harassment"><span class="bx">✓</span>VC Harassment</label>
+        <label class="chk"><input type="checkbox" value="Spec Abuse / Metagaming"><span class="bx">✓</span>Spec Abuse</label>
+        <label class="chk"><input type="checkbox" value="Doxxing / Privacy"><span class="bx">✓</span>Doxxing</label>
+        <label class="chk"><input type="checkbox" value="Other"><span class="bx">✓</span>Other</label>
+      </div>
+    </div>
+    <div class="fg"><label>Severity <span class="req">*</span></label>
+      <div class="scale">
+        <label class="sopt"><input type="radio" name="rp-sev" value="1"><span class="sn">1</span>Minor</label>
+        <label class="sopt"><input type="radio" name="rp-sev" value="2"><span class="sn">2</span>Moderate</label>
+        <label class="sopt"><input type="radio" name="rp-sev" value="3"><span class="sn">3</span>Serious</label>
+        <label class="sopt"><input type="radio" name="rp-sev" value="4"><span class="sn">4</span>Severe</label>
+        <label class="sopt" style="border-color:rgba(201,64,56,.3)"><input type="radio" name="rp-sev" value="5"><span class="sn" style="color:var(--red)">5</span>Critical</label>
+      </div>
+    </div>
+    <div class="fg"><label>What happened? <span class="req">*</span><span class="hint">Include dates, times, context. Was it in VC, chat, or in-game?</span></label><textarea id="rp-desc" placeholder="Be specific — what did they say or do? Were there witnesses?" style="min-height:120px"></textarea><div class="err-msg" id="e-rp-desc">Required</div></div>
+    <div class="row">
+      <div class="fg"><label>Witnesses</label><input type="text" id="rp-wit" placeholder="Player1, Player2"></div>
+      <div class="fg"><label>Evidence?</label>
+        <select id="rp-evi"><option value="">Select...</option><option>Yes — Screenshots</option><option>Yes — Video/Audio</option><option>Yes — Chat Logs</option><option>No, but witnesses can confirm</option><option>No evidence</option></select>
+      </div>
+    </div>
+    <button class="submit danger" onclick="submitForm('report')">SUBMIT REPORT →</button>
+  </div>
+
+  <!-- ========== DASHBOARD ========== -->
+  <div class="panel" id="p-dashboard">
+    <!-- Password Gate -->
+    <div class="pw-gate" id="pw-gate">
+      <span class="lock-ico">🔒</span>
+      <h3>STAFF ONLY</h3>
+      <p>Enter the staff password to view submissions.</p>
+      <div class="pw-row">
+        <input type="password" id="pw-input" placeholder="Password..." onkeydown="if(event.key==='Enter')checkPw()">
+        <button onclick="checkPw()">UNLOCK</button>
+      </div>
+      <div class="pw-err" id="pw-err">Wrong password. Staff only.</div>
+    </div>
+
+    <!-- Actual Dashboard (hidden until authenticated) -->
+    <div id="dash-wrapper" style="display:none">
+      <div id="dash-loading" style="text-align:center;padding:40px;color:var(--text-dim)">Loading data...</div>
+      <div id="dash-content" style="display:none">
+      <div class="dash-stats" id="dash-stats"></div>
+
+      <div class="dash-section">
+        <div class="dash-title">⚔️ FACTION SPORTSMANSHIP AVERAGES</div>
+        <div id="faction-bars"></div>
+      </div>
+
+      <div class="dash-section">
+        <div class="dash-title">🚩 PLAYER REPORTS <span class="count" id="report-count">0</span></div>
+        <div class="filters">
+          <select id="f-sev" onchange="renderDash()"><option value="">All Severities</option><option value="5">5 — Critical</option><option value="4">4 — Severe</option><option value="3">3 — Serious</option><option value="2">2 — Moderate</option><option value="1">1 — Minor</option></select>
+          <select id="f-fac" onchange="renderDash()"><option value="">All Factions</option><option>Monarch</option><option>Nautilus</option><option>Panda Isles</option><option>Independent</option></select>
+          <button class="f-clear" onclick="document.getElementById('f-sev').value='';document.getElementById('f-fac').value='';renderDash()">Clear</button>
+        </div>
+        <div id="report-list"></div>
+      </div>
+
+      <div class="dash-section">
+        <div class="dash-title">📋 SERVER FEEDBACK <span class="count" id="feedback-count">0</span></div>
+        <div id="feedback-list"></div>
+      </div>
+
+      <div class="dash-section">
+        <div class="dash-title">⚔️ FACTION RATING DETAILS <span class="count" id="frating-count">0</span></div>
+        <div id="frating-list"></div>
+      </div>
+
+      <div class="danger-zone">
+        <h4>⚠ DANGER ZONE</h4>
+        <p>Permanently delete all stored forum data. This cannot be undone.</p>
+        <button onclick="clearAllData()">WIPE ALL DATA</button>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="success" id="success">
+    <div class="si">✅</div>
+    <h3>SUBMITTED</h3>
+    <p>Your submission has been recorded.<br>Staff will review it. Thanks for helping keep BSSMP great.</p>
+    <button class="rst" onclick="resetForm()">SUBMIT ANOTHER →</button>
+  </div>
+
+  <div class="footer">Banana Sandwich SMP <span style="color:var(--red)">♥</span> Community Forum<br><span style="opacity:.5">All submissions logged with your username. Be respectful.</span></div>
+</div>
+
+<script>
+// ===== STORAGE KEYS =====
+const KEYS = { feedback: 'bssmp:feedback', factions: 'bssmp:factions', reports: 'bssmp:reports' };
+
+// ===== STAFF PASSWORD =====
+// CHANGE THIS to your own staff password before deploying!
+const STAFF_PASSWORD = 'bssmp-staff-2024';
+let staffUnlocked = false;
+
+// ===== NAVIGATION =====
+function go(tab) {
+  const tabNames = ['feedback','factions','report','dashboard'];
+  document.querySelectorAll('.nav button').forEach((b,i) => b.classList.toggle('on', tabNames[i] === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.getElementById('p-' + tab).classList.add('on');
+  document.getElementById('success').classList.remove('show');
+
+  if (tab === 'dashboard') {
+    if (staffUnlocked) {
+      document.getElementById('pw-gate').style.display = 'none';
+      document.getElementById('dash-wrapper').style.display = 'block';
+      renderDash();
+    } else {
+      document.getElementById('pw-gate').style.display = 'block';
+      document.getElementById('dash-wrapper').style.display = 'none';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-err').classList.remove('show');
+      setTimeout(() => document.getElementById('pw-input').focus(), 100);
+    }
+  }
+}
+
+function checkPw() {
+  const input = document.getElementById('pw-input').value;
+  if (input === STAFF_PASSWORD) {
+    staffUnlocked = true;
+    document.getElementById('pw-gate').style.display = 'none';
+    document.getElementById('dash-wrapper').style.display = 'block';
+    renderDash();
+  } else {
+    document.getElementById('pw-err').classList.add('show');
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+// ===== STORAGE HELPERS =====
+async function loadArr(key) {
+  try {
+    const r = await window.storage.get(key);
+    return r ? JSON.parse(r.value) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveArr(key, arr) {
+  try {
+    await window.storage.set(key, JSON.stringify(arr));
+  } catch(e) {
+    console.error('Save failed:', e);
+  }
+}
+
+// ===== HELPERS =====
+function gv(id) { return document.getElementById(id)?.value?.trim() || ''; }
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function fmtDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+  } catch { return iso; }
+}
+
+function renderStarsHTML(filled, total) {
+  let s = '';
+  for (let i = 1; i <= total; i++) {
+    s += i <= filled ? '★' : '<span class="off">★</span>';
+  }
+  return s;
+}
+
+// ===== VALIDATION =====
+function vld(id) {
+  const el = document.getElementById(id);
+  if (!el.value?.trim()) {
+    el.classList.add('err-field');
+    const e = document.getElementById('e-' + id);
+    if (e) e.classList.add('show');
+    return false;
+  }
+  return true;
+}
+
+// ===== SUBMIT =====
+async function submitForm(type) {
+  // Clear errors
+  document.querySelectorAll('.err-field').forEach(el => el.classList.remove('err-field'));
+  document.querySelectorAll('.err-msg').forEach(el => el.classList.remove('show'));
+
+  let ok = true;
+  if (type === 'feedback') { if (!vld('fb-user')) ok = false; if (!vld('fb-fac')) ok = false; }
+  if (type === 'factions') { if (!vld('fr-user')) ok = false; }
+  if (type === 'report') { if (!vld('rp-user')) ok = false; if (!vld('rp-target')) ok = false; if (!vld('rp-desc')) ok = false; }
+  if (!ok) return;
+
+  const btn = document.querySelector('.panel.on .submit');
+  const origText = btn.textContent;
+  btn.textContent = 'SAVING...';
+  btn.disabled = true;
+
+  try {
+    const ts = new Date().toISOString();
+    const id = Date.now();
+
+    if (type === 'feedback') {
+      const arr = await loadArr(KEYS.feedback);
+      arr.push({
+        id, ts,
+        user: gv('fb-user'),
+        faction: gv('fb-fac'),
+        tenure: gv('fb-tenure'),
+        enjoys: [...document.querySelectorAll('#fb-enjoys input:checked')].map(c => c.value),
+        rating: document.querySelector('input[name="fb-rate"]:checked')?.value || '',
+        improvements: gv('fb-improve'),
+        shoutouts: gv('fb-shout')
+      });
+      await saveArr(KEYS.feedback, arr);
+    }
+
+    if (type === 'factions') {
+      const arr = await loadArr(KEYS.factions);
+      arr.push({
+        id, ts,
+        user: gv('fr-user'),
+        faction: gv('fr-fac'),
+        monarch: document.querySelector('input[name="r-monarch"]:checked')?.value || '',
+        monarchC: gv('c-monarch'),
+        nautilus: document.querySelector('input[name="r-nautilus"]:checked')?.value || '',
+        nautilusC: gv('c-nautilus'),
+        panda: document.querySelector('input[name="r-panda"]:checked')?.value || '',
+        pandaC: gv('c-panda'),
+        indie: document.querySelector('input[name="r-indie"]:checked')?.value || '',
+        indieC: gv('c-indie'),
+        best: gv('fr-best'),
+        concerns: gv('fr-concerns')
+      });
+      await saveArr(KEYS.factions, arr);
+    }
+
+    if (type === 'report') {
+      const arr = await loadArr(KEYS.reports);
+      arr.push({
+        id, ts,
+        user: gv('rp-user'),
+        faction: gv('rp-fac'),
+        target: gv('rp-target'),
+        targetFaction: gv('rp-tfac'),
+        violations: [...document.querySelectorAll('#rp-violations input:checked')].map(c => c.value),
+        severity: document.querySelector('input[name="rp-sev"]:checked')?.value || '',
+        desc: gv('rp-desc'),
+        witnesses: gv('rp-wit'),
+        evidence: gv('rp-evi')
+      });
+      await saveArr(KEYS.reports, arr);
+    }
+
+    // Show success
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+    document.getElementById('success').classList.add('show');
+
+  } catch(e) {
+    console.error('Submit error:', e);
+    alert('Something went wrong saving. Please try again.');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+}
+
+function resetForm() {
+  document.querySelectorAll('input[type="text"],textarea').forEach(e => e.value = '');
+  document.querySelectorAll('select').forEach(e => e.selectedIndex = 0);
+  document.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(e => e.checked = false);
+  document.getElementById('success').classList.remove('show');
+  go('feedback');
+}
+
+// ===== DASHBOARD =====
+async function renderDash() {
+  const fb = await loadArr(KEYS.feedback);
+  const fr = await loadArr(KEYS.factions);
+  const rp = await loadArr(KEYS.reports);
+
+  document.getElementById('dash-loading').style.display = 'none';
+  document.getElementById('dash-content').style.display = 'block';
+
+  // -- Stats --
+  const ratedFb = fb.filter(f => f.rating);
+  const avgRating = ratedFb.length
+    ? (ratedFb.reduce((s, f) => s + parseFloat(f.rating), 0) / ratedFb.length).toFixed(1)
+    : '—';
+  const severeCount = rp.filter(r => parseInt(r.severity) >= 4).length;
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><span class="num">${fb.length}</span><span class="lbl">Feedback</span></div>
+    <div class="stat-card"><span class="num">${fr.length}</span><span class="lbl">Faction Votes</span></div>
+    <div class="stat-card"><span class="num">${rp.length}</span><span class="lbl">Reports</span></div>
+    <div class="stat-card"><span class="num" ${severeCount > 0 ? 'style="color:var(--red)"' : ''}>${severeCount}</span><span class="lbl">Severe (4-5)</span></div>
+  `;
+
+  // -- Faction Bars --
+  const factionInfo = [
+    { name: 'Monarch', key: 'monarch' },
+    { name: 'Nautilus', key: 'nautilus' },
+    { name: 'Panda Isles', key: 'panda' },
+    { name: 'Independents', key: 'indie' }
+  ];
+
+  const barsHTML = factionInfo.map(fi => {
+    const vals = fr.map(r => parseFloat(r[fi.key])).filter(v => !isNaN(v) && v > 0);
+    const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+    const pct = (avg / 5 * 100).toFixed(0);
+    return `<div class="faction-bar">
+      <div class="fname">${fi.name}</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="avg">${vals.length ? avg.toFixed(1) : '—'}</div>
+      <div class="votes">${vals.length} vote${vals.length !== 1 ? 's' : ''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('faction-bars').innerHTML = barsHTML;
+
+  // -- Reports --
+  const sevFilter = document.getElementById('f-sev').value;
+  const facFilter = document.getElementById('f-fac').value;
+  let filtRp = rp.slice().reverse();
+  if (sevFilter) filtRp = filtRp.filter(r => r.severity === sevFilter);
+  if (facFilter) filtRp = filtRp.filter(r =>
+    (r.targetFaction || '').toLowerCase().includes(facFilter.toLowerCase()) ||
+    r.faction === facFilter
+  );
+  document.getElementById('report-count').textContent = filtRp.length;
+
+  document.getElementById('report-list').innerHTML = filtRp.length
+    ? filtRp.map(r => {
+        const sev = parseInt(r.severity) || 0;
+        const sevClass = sev >= 4 ? 'sev-high' : sev >= 3 ? 'sev-mid' : '';
+        return `<div class="d-card">
+          <div class="d-card-hd">
+            <div>
+              <span class="user">${esc(r.target)}</span>
+              ${r.targetFaction ? `<span class="faction-pill">${esc(r.targetFaction)}</span>` : ''}
+            </div>
+            <span class="ts">${fmtDate(r.ts)}</span>
+          </div>
+          <div class="body">${esc(r.desc)}</div>
+          <div class="meta">
+            <span class="tag ${sevClass}">SEV ${r.severity || '?'}/5</span>
+            ${(r.violations || []).map(v => `<span class="tag">${esc(v)}</span>`).join('')}
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--text-dim)">
+            Filed by <strong style="color:var(--text)">${esc(r.user)}</strong>
+            ${r.witnesses ? ` · Witnesses: ${esc(r.witnesses)}` : ''}
+            ${r.evidence ? ` · ${esc(r.evidence)}` : ''}
+          </div>
+          <button class="del-btn" onclick="delEntry('reports',${r.id})">Delete</button>
+        </div>`;
+      }).join('')
+    : '<div class="empty"><span class="ei">🚩</span>No reports match filters</div>';
+
+  // -- Feedback --
+  document.getElementById('feedback-count').textContent = fb.length;
+  document.getElementById('feedback-list').innerHTML = fb.length
+    ? fb.slice().reverse().map(f => `<div class="d-card">
+        <div class="d-card-hd">
+          <div>
+            <span class="user">${esc(f.user)}</span>
+            <span class="faction-pill">${esc(f.faction)}</span>
+          </div>
+          <span class="ts">${fmtDate(f.ts)}</span>
+        </div>
+        <div class="body">
+          ${f.rating ? `<div class="rating-stars" style="margin-bottom:6px">${renderStarsHTML(parseInt(f.rating), 5)}</div>` : ''}
+          ${f.enjoys?.length ? `<strong>Enjoys:</strong> ${f.enjoys.map(esc).join(', ')}<br>` : ''}
+          ${f.improvements ? `<strong>Would change:</strong> ${esc(f.improvements)}<br>` : ''}
+          ${f.shoutouts ? `<strong>Shoutouts:</strong> ${esc(f.shoutouts)}` : ''}
+        </div>
+        ${f.tenure ? `<div class="meta"><span class="tag">${esc(f.tenure)}</span></div>` : ''}
+        <button class="del-btn" onclick="delEntry('feedback',${f.id})">Delete</button>
+      </div>`).join('')
+    : '<div class="empty"><span class="ei">📋</span>No feedback submitted yet</div>';
+
+  // -- Faction Rating Details --
+  document.getElementById('frating-count').textContent = fr.length;
+  document.getElementById('frating-list').innerHTML = fr.length
+    ? fr.slice().reverse().map(f => {
+        const lines = [];
+        if (f.monarch) lines.push(`<strong>Monarch:</strong> ${renderStarsHTML(parseInt(f.monarch), 5)}${f.monarchC ? ' — ' + esc(f.monarchC) : ''}`);
+        if (f.nautilus) lines.push(`<strong>Nautilus:</strong> ${renderStarsHTML(parseInt(f.nautilus), 5)}${f.nautilusC ? ' — ' + esc(f.nautilusC) : ''}`);
+        if (f.panda) lines.push(`<strong>Panda Isles:</strong> ${renderStarsHTML(parseInt(f.panda), 5)}${f.pandaC ? ' — ' + esc(f.pandaC) : ''}`);
+        if (f.indie) lines.push(`<strong>Independents:</strong> ${renderStarsHTML(parseInt(f.indie), 5)}${f.indieC ? ' — ' + esc(f.indieC) : ''}`);
+        return `<div class="d-card">
+          <div class="d-card-hd">
+            <div>
+              <span class="user">${esc(f.user)}</span>
+              <span class="faction-pill">${esc(f.faction)}</span>
+            </div>
+            <span class="ts">${fmtDate(f.ts)}</span>
+          </div>
+          <div class="body rating-stars">
+            ${lines.join('<br>')}
+            ${f.best ? `<br><br><strong style="color:var(--green)">Best faction:</strong> <span style="color:var(--text)">${esc(f.best)}</span>` : ''}
+            ${f.concerns ? `<br><strong style="color:var(--red)">Concerns:</strong> <span style="color:var(--text)">${esc(f.concerns)}</span>` : ''}
+          </div>
+          <button class="del-btn" onclick="delEntry('factions',${f.id})">Delete</button>
+        </div>`;
+      }).join('')
+    : '<div class="empty"><span class="ei">⚔️</span>No faction ratings yet</div>';
+}
+
+async function delEntry(type, id) {
+  if (!confirm('Delete this entry permanently?')) return;
+  const arr = await loadArr(KEYS[type]);
+  const filtered = arr.filter(e => e.id !== id);
+  await saveArr(KEYS[type], filtered);
+  renderDash();
+}
+
+async function clearAllData() {
+  if (!confirm('⚠ This will PERMANENTLY delete ALL forum data.\n\nAre you absolutely sure?')) return;
+  if (!confirm('Last chance — this cannot be undone.')) return;
+  try {
+    await window.storage.delete(KEYS.feedback);
+    await window.storage.delete(KEYS.factions);
+    await window.storage.delete(KEYS.reports);
+  } catch(e) { console.error(e); }
+  renderDash();
+}
+</script>
+</body>
+</html>
