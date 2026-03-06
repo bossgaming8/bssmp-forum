@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banana Sandwich SMP — Community Forum</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1a1714;
+  --bg-raised: #252019;
+  --bg-card: #2e2820;
+  --bg-card-hover: #3a3228;
+  --bg-input: #1f1b16;
+  --border: #4a3f33;
+  --border-active: #e8b83a;
+  --gold: #e8b83a;
+  --gold-dim: #c49a2e;
+  --gold-glow: rgba(232, 184, 58, 0.15);
+  --gold-bright: #f5d04a;
+  --text: #f0e6d8;
+  --text-mid: #c4b8a8;
+  --text-dim: #9a8e7e;
+  --red: #e05048;
+  --red-bg: rgba(224, 80, 72, 0.12);
+  --green: #4cba58;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;font-size:17px;line-height:1.7}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(232,184,58,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(232,184,58,.025) 1px,transparent 1px);background-size:20px 20px;pointer-events:none;z-index:0}
+.app{max-width:820px;margin:0 auto;padding:36px 20px 80px;position:relative;z-index:1}
+
+.hdr{text-align:center;margin-bottom:40px}
+.hdr h1{font-family:'Press Start 2P',cursive;font-size:20px;color:var(--gold);line-height:1.8;text-shadow:0 0 40px rgba(232,184,58,.25)}
+.hdr .sub{font-family:'Press Start 2P',cursive;font-size:9px;color:var(--text-dim);letter-spacing:4px;margin-top:10px;text-transform:uppercase}
+.hdr p{font-size:18px;color:var(--text-mid);margin-top:18px;max-width:540px;margin-inline:auto;line-height:1.7}
+.hdr-line{width:80px;height:3px;background:var(--gold);margin:22px auto 0;box-shadow:0 0 16px var(--gold-glow)}
+
+.notice{background:var(--red-bg);border:1px solid rgba(224,80,72,.25);border-left:3px solid var(--red);padding:16px 20px;margin-bottom:16px;font-size:16px;line-height:1.7;color:#e8a8a4}
+.notice b{color:var(--red);font-family:'Press Start 2P',cursive;font-size:10px;display:block;margin-bottom:6px}
+
+.trust-note{background:rgba(76,186,88,.08);border:1px solid rgba(76,186,88,.2);border-left:3px solid var(--green);padding:16px 20px;margin-bottom:28px;font-size:16px;line-height:1.7;color:#a8daa8}
+.trust-note b{color:var(--green);font-family:'Press Start 2P',cursive;font-size:10px;display:block;margin-bottom:6px}
+
+/* Identity Bar */
+.id-bar{background:var(--bg-card);border:1px solid var(--border);padding:20px 22px;margin-bottom:28px}
+.id-bar h3{font-family:'Press Start 2P',cursive;font-size:11px;color:var(--gold);margin-bottom:14px;letter-spacing:1px}
+.id-bar .id-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.id-bar .id-row{grid-template-columns:1fr}}
+
+.nav{display:flex;gap:2px;margin-bottom:28px;background:var(--bg);border:1px solid var(--border);padding:3px}
+.nav button{flex:1;padding:16px 8px;background:transparent;border:none;color:var(--text-dim);font-family:'Press Start 2P',cursive;font-size:10px;cursor:pointer;transition:all .2s;letter-spacing:.5px;text-align:center;line-height:1.6}
+.nav button:hover{color:var(--text);background:var(--bg-raised)}
+.nav button.on{color:var(--gold);background:var(--bg-card)}
+.nav button .ico{display:block;font-size:16px;margin-bottom:5px}
+
+.panel{display:none}.panel.on{display:block}
+.fg{margin-bottom:24px}
+.fg>label{display:block;font-size:17px;font-weight:600;color:var(--text);margin-bottom:10px;letter-spacing:.2px}
+.fg .req{color:var(--red)}
+.fg .hint{display:block;font-weight:400;color:var(--text-dim);font-size:14px;margin-top:4px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+
+input[type="text"],textarea,select{width:100%;padding:14px 16px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);font-family:'Outfit',sans-serif;font-size:16px;outline:none;transition:border .2s,box-shadow .2s;border-radius:4px}
+input:focus,textarea:focus,select:focus{border-color:var(--border-active);box-shadow:0 0 0 3px var(--gold-glow)}
+textarea{resize:vertical;min-height:100px}
+select{cursor:pointer}option{background:var(--bg)}
+
+.err-field{border-color:var(--red)!important}
+.err-msg{color:var(--red);font-size:14px;margin-top:5px;display:none}
+.err-msg.show{display:block}
+
+hr.div{border:none;border-top:1px dashed var(--border);margin:28px 0}
+
+.chk-group{display:flex;flex-wrap:wrap;gap:10px}
+.chk{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-input);border:1px solid var(--border);cursor:pointer;font-size:16px;transition:all .15s;user-select:none;border-radius:4px}
+.chk:hover{border-color:var(--gold-dim);background:var(--bg-card-hover)}
+.chk input{display:none}
+.chk .bx{width:16px;height:16px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;transition:all .15s;border-radius:2px}
+.chk:has(input:checked){border-color:var(--gold);background:var(--gold-glow);color:var(--gold)}
+.chk:has(input:checked) .bx{border-color:var(--gold);background:var(--gold);color:var(--bg)}
+
+.scale{display:flex;gap:0}
+.sopt{flex:1;padding:14px 4px;text-align:center;font-size:14px;border:1px solid var(--border);cursor:pointer;transition:all .15s;color:var(--text-mid);user-select:none}
+.sopt+.sopt{border-left:none}
+.sopt:hover{background:var(--bg-card-hover)}
+.sopt input{display:none}
+.sopt:has(input:checked){background:var(--gold-glow);border-color:var(--gold);color:var(--gold);font-weight:700}
+.sopt .sn{font-family:'Press Start 2P',cursive;font-size:16px;display:block;margin-bottom:4px}
+
+.star-block{margin-bottom:16px;padding:16px 18px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px}
+.star-hd{font-size:17px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.ftag{font-family:'Press Start 2P',cursive;font-size:9px;padding:5px 12px;background:rgba(232,184,58,.1);border:1px solid var(--border);color:var(--gold-dim)}
+.stars{display:flex;gap:8px;direction:rtl;justify-content:flex-end}
+.stars input{display:none}
+.stars label{font-size:32px;color:var(--border);cursor:pointer;transition:color .12s,transform .12s;margin:0}
+.stars label:hover,.stars label:hover~label,.stars input:checked~label{color:var(--gold);transform:scale(1.15)}
+.star-cmt{margin-top:12px}
+.star-cmt input{font-size:15px;padding:12px 14px}
+
+.submit{width:100%;padding:18px;background:var(--gold);border:none;color:var(--bg);font-family:'Press Start 2P',cursive;font-size:12px;cursor:pointer;letter-spacing:2px;transition:all .2s;margin-top:14px;border-radius:4px}
+.submit:hover{background:var(--gold-bright);transform:translateY(-1px);box-shadow:0 4px 24px rgba(232,184,58,.3)}
+.submit:active{transform:translateY(0)}
+.submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.submit.danger{background:var(--red)}
+.submit.danger:hover{background:#e86058}
+
+.success{display:none;text-align:center;padding:60px 20px}
+.success.show{display:block}
+.success .si{font-size:56px;margin-bottom:20px}
+.success h3{font-family:'Press Start 2P',cursive;font-size:16px;color:var(--green);margin-bottom:16px}
+.success p{color:var(--text-mid);font-size:17px;line-height:1.7}
+.success .rst{margin-top:28px;padding:14px 30px;background:transparent;border:1px solid var(--border);color:var(--text-mid);font-family:'Outfit',sans-serif;font-size:16px;cursor:pointer;transition:all .2s;border-radius:4px}
+.success .rst:hover{border-color:var(--gold);color:var(--gold)}
+
+.footer{text-align:center;margin-top:44px;padding-top:22px;border-top:1px solid var(--border);font-size:14px;color:var(--text-dim);line-height:2}
+.setup-warn{background:rgba(232,184,58,.1);border:1px solid rgba(232,184,58,.25);border-left:3px solid var(--gold);padding:16px 20px;margin-bottom:20px;font-size:16px;line-height:1.7;color:var(--gold);display:none}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.app{animation:fadeIn .4s ease-out}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <h1>BANANA SANDWICH</h1>
+    <div class="sub">SMP Community Forum</div>
+    <p>Help us make the server better. Your responses are <strong style="color:var(--gold)">not anonymous</strong> — own your words.</p>
+    <div class="hdr-line"></div>
+  </div>
+
+  <div class="notice"><b>⚠ NOT ANONYMOUS</b>Your username is attached to every submission. Toxic, threatening, or harassing responses will result in disciplinary action. Honest feedback — even critical — is always welcome and will never be punished.</div>
+
+  <div class="trust-note"><b>🔒 PRIVACY</b>Only <strong style="color:var(--green)">bhored</strong> can see your submissions. Your responses are sent to a private staff-only system — other players cannot view them.</div>
+
+  <!-- IDENTITY — entered once, used everywhere -->
+  <div class="id-bar">
+    <h3>👤 YOUR IDENTITY</h3>
+    <div class="id-row">
+      <div class="fg" style="margin-bottom:0"><label style="font-size:16px">Minecraft Username <span class="req">*</span></label><input type="text" id="g-user" placeholder="e.g. Steve_2024"><div class="err-msg" id="e-g-user">Enter your username to submit</div></div>
+      <div class="fg" style="margin-bottom:0"><label style="font-size:16px">Your Faction <span class="req">*</span></label>
+        <select id="g-fac"><option value="">Select your faction...</option><option>Monarch</option><option>Nautilus</option><option>Panda Isles</option><option>Independent</option><option>Other</option></select>
+        <div class="err-msg" id="e-g-fac">Select your faction</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-warn" id="setup-warn">⚠ Backend not configured. Submissions won't be saved. See setup instructions.</div>
+
+  <div class="nav">
+    <button class="on" onclick="go('feedback')"><span class="ico">📋</span>FEEDBACK</button>
+    <button onclick="go('factions')"><span class="ico">⚔️</span>FACTIONS</button>
+    <button onclick="go('report')"><span class="ico">🚩</span>REPORT</button>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="panel on" id="p-feedback">
+    <div class="fg"><label>How long have you been on the server?</label>
+      <select id="fb-tenure"><option value="">Select...</option><option>&lt;1 week</option><option>1–4 weeks</option><option>1–3 months</option><option>3+ months (OG)</option></select>
+    </div>
+    <hr class="div">
+    <div class="fg"><label>What do you enjoy most? <span class="hint">Check all that apply</span></label>
+      <div class="chk-group" id="fb-enjoys">
+        <label class="chk"><input type="checkbox" value="Building"><span class="bx">✓</span>Building</label>
+        <label class="chk"><input type="checkbox" value="PvP"><span class="bx">✓</span>PvP</label>
+        <label class="chk"><input type="checkbox" value="Community"><span class="bx">✓</span>Community</label>
+        <label class="chk"><input type="checkbox" value="Factions"><span class="bx">✓</span>Factions</label>
+        <label class="chk"><input type="checkbox" value="Events"><span class="bx">✓</span>Events</label>
+        <label class="chk"><input type="checkbox" value="Vanilla Feel"><span class="bx">✓</span>Vanilla</label>
+        <label class="chk"><input type="checkbox" value="Voice Chat"><span class="bx">✓</span>Voice Chat</label>
+        <label class="chk"><input type="checkbox" value="Exploration"><span class="bx">✓</span>Exploration</label>
+      </div>
+    </div>
+    <div class="fg"><label>Overall server rating</label>
+      <div class="scale">
+        <label class="sopt"><input type="radio" name="fb-rate" value="1"><span class="sn">1</span>Poor</label>
+        <label class="sopt"><input type="radio" name="fb-rate" value="2"><span class="sn">2</span>Okay</label>
+        <label class="sopt"><input type="radio" name="fb-rate" value="3"><span class="sn">3</span>Good</label>
+        <label class="sopt"><input type="radio" name="fb-rate" value="4"><span class="sn">4</span>Great</label>
+        <label class="sopt"><input type="radio" name="fb-rate" value="5"><span class="sn">5</span>Amazing</label>
+      </div>
+    </div>
+    <div class="fg"><label>What would you change or improve?</label><textarea id="fb-improve" placeholder="Be honest — new features, rule changes, things that bother you..."></textarea></div>
+    <div class="fg"><label>Shoutouts — who makes this server great?</label><textarea id="fb-shout" placeholder="Name players or staff who deserve recognition..." style="min-height:70px"></textarea></div>
+    <button class="submit" onclick="submitForm('feedback')">SUBMIT FEEDBACK →</button>
+  </div>
+
+  <!-- FACTIONS -->
+  <div class="panel" id="p-factions">
+    <p style="font-size:17px;color:var(--text-mid);margin-bottom:20px;line-height:1.7">Rate each faction on sportsmanship, behavior, and how they contribute to the community. Be fair — this isn't a popularity contest.</p>
+    <div id="faction-rates">
+      <div class="star-block"><div class="star-hd"><span class="ftag">MONARCH</span> Sportsmanship & Behavior</div><div class="stars"><input type="radio" id="mo5" name="r-monarch" value="5"><label for="mo5">★</label><input type="radio" id="mo4" name="r-monarch" value="4"><label for="mo4">★</label><input type="radio" id="mo3" name="r-monarch" value="3"><label for="mo3">★</label><input type="radio" id="mo2" name="r-monarch" value="2"><label for="mo2">★</label><input type="radio" id="mo1" name="r-monarch" value="1"><label for="mo1">★</label></div><div class="star-cmt"><input type="text" placeholder="Optional: explain your rating..." id="c-monarch"></div></div>
+      <div class="star-block"><div class="star-hd"><span class="ftag">NAUTILUS</span> Sportsmanship & Behavior</div><div class="stars"><input type="radio" id="na5" name="r-nautilus" value="5"><label for="na5">★</label><input type="radio" id="na4" name="r-nautilus" value="4"><label for="na4">★</label><input type="radio" id="na3" name="r-nautilus" value="3"><label for="na3">★</label><input type="radio" id="na2" name="r-nautilus" value="2"><label for="na2">★</label><input type="radio" id="na1" name="r-nautilus" value="1"><label for="na1">★</label></div><div class="star-cmt"><input type="text" placeholder="Optional: explain your rating..." id="c-nautilus"></div></div>
+      <div class="star-block"><div class="star-hd"><span class="ftag">PANDA ISLES</span> Sportsmanship & Behavior</div><div class="stars"><input type="radio" id="pa5" name="r-panda" value="5"><label for="pa5">★</label><input type="radio" id="pa4" name="r-panda" value="4"><label for="pa4">★</label><input type="radio" id="pa3" name="r-panda" value="3"><label for="pa3">★</label><input type="radio" id="pa2" name="r-panda" value="2"><label for="pa2">★</label><input type="radio" id="pa1" name="r-panda" value="1"><label for="pa1">★</label></div><div class="star-cmt"><input type="text" placeholder="Optional: explain your rating..." id="c-panda"></div></div>
+      <div class="star-block"><div class="star-hd"><span class="ftag">INDEPENDENTS</span> Sportsmanship & Behavior</div><div class="stars"><input type="radio" id="in5" name="r-indie" value="5"><label for="in5">★</label><input type="radio" id="in4" name="r-indie" value="4"><label for="in4">★</label><input type="radio" id="in3" name="r-indie" value="3"><label for="in3">★</label><input type="radio" id="in2" name="r-indie" value="2"><label for="in2">★</label><input type="radio" id="in1" name="r-indie" value="1"><label for="in1">★</label></div><div class="star-cmt"><input type="text" placeholder="Optional: explain your rating..." id="c-indie"></div></div>
+    </div>
+    <hr class="div">
+    <div class="fg"><label>Which faction has the best sportsmanship? Why?</label><textarea id="fr-best" placeholder="Who plays fair and represents what the server is about?"></textarea></div>
+    <div class="fg"><label>Any faction behavior concerns?</label><textarea id="fr-concerns" placeholder="Describe toxic behavior, exploits, bullying, or unsportsmanlike conduct..."></textarea></div>
+    <button class="submit" onclick="submitForm('factions')">SUBMIT RATINGS →</button>
+  </div>
+
+  <!-- REPORT -->
+  <div class="panel" id="p-report">
+    <p style="font-size:17px;color:var(--text-mid);margin-bottom:20px;line-height:1.7">Report a specific player for rule violations. Only <strong style="color:var(--green)">bhored</strong> sees these reports. False reports will not be tolerated.</p>
+    <div class="row">
+      <div class="fg"><label>Player Being Reported <span class="req">*</span></label><input type="text" id="rp-target" placeholder="Exact username"><div class="err-msg" id="e-rp-target">Enter their username</div></div>
+      <div class="fg"><label>Their Faction (if known)</label><input type="text" id="rp-tfac" placeholder="e.g. Monarch"></div>
+    </div>
+    <div class="fg"><label>Type of Violation <span class="req">*</span><span class="hint">Check all that apply</span></label>
+      <div class="chk-group" id="rp-violations">
+        <label class="chk"><input type="checkbox" value="Verbal Abuse / Hate Speech"><span class="bx">✓</span>Verbal Abuse</label>
+        <label class="chk"><input type="checkbox" value="Death Threats / KYS"><span class="bx">✓</span>Death Threats / KYS</label>
+        <label class="chk"><input type="checkbox" value="Exploiting / Cheating"><span class="bx">✓</span>Exploiting</label>
+        <label class="chk"><input type="checkbox" value="Griefing"><span class="bx">✓</span>Griefing</label>
+        <label class="chk"><input type="checkbox" value="VC Harassment"><span class="bx">✓</span>VC Harassment</label>
+        <label class="chk"><input type="checkbox" value="Spec Abuse / Metagaming"><span class="bx">✓</span>Spec Abuse</label>
+        <label class="chk"><input type="checkbox" value="Doxxing / Privacy"><span class="bx">✓</span>Doxxing</label>
+        <label class="chk"><input type="checkbox" value="Other"><span class="bx">✓</span>Other</label>
+      </div>
+    </div>
+    <div class="fg"><label>Severity</label>
+      <div class="scale">
+        <label class="sopt"><input type="radio" name="rp-sev" value="1"><span class="sn">1</span>Minor</label>
+        <label class="sopt"><input type="radio" name="rp-sev" value="2"><span class="sn">2</span>Moderate</label>
+        <label class="sopt"><input type="radio" name="rp-sev" value="3"><span class="sn">3</span>Serious</label>
+        <label class="sopt"><input type="radio" name="rp-sev" value="4"><span class="sn">4</span>Severe</label>
+        <label class="sopt" style="border-color:rgba(224,80,72,.3)"><input type="radio" name="rp-sev" value="5"><span class="sn" style="color:var(--red)">5</span>Critical</label>
+      </div>
+    </div>
+    <div class="fg"><label>What happened? <span class="req">*</span><span class="hint">Include dates, times, context. Was it in VC, chat, or in-game?</span></label><textarea id="rp-desc" placeholder="Be specific — what did they say or do? Were there witnesses?" style="min-height:130px"></textarea><div class="err-msg" id="e-rp-desc">Describe what happened</div></div>
+    <div class="row">
+      <div class="fg"><label>Witnesses</label><input type="text" id="rp-wit" placeholder="Player1, Player2"></div>
+      <div class="fg"><label>Evidence?</label>
+        <select id="rp-evi"><option value="">Select...</option><option>Yes — Screenshots</option><option>Yes — Video/Audio</option><option>Yes — Chat Logs</option><option>No, but witnesses can confirm</option><option>No evidence</option></select>
+      </div>
+    </div>
+    <button class="submit danger" onclick="submitForm('report')">SUBMIT REPORT →</button>
+  </div>
+
+  <!-- Success -->
+  <div class="success" id="success">
+    <div class="si">✅</div>
+    <h3>SUBMITTED</h3>
+    <p>Your submission has been recorded and sent to staff.<br>Thanks for helping keep Banana Sandwich SMP great.</p>
+    <button class="rst" onclick="resetForm()">SUBMIT ANOTHER →</button>
+  </div>
+
+  <div class="footer">Banana Sandwich SMP <span style="color:var(--red)">♥</span> Community Forum<br><span style="opacity:.5">All submissions are private — only staff can view them.</span></div>
+</div>
+
+<script>
+// =============================================================
+// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW
+// =============================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbxQyIZzDx7PjFyiQxMaCe7HiYOYTA-kCx5UKFJ08ujaW0ioAOyT3Rv6BKBIB7BCbA99WA/exec';
+// =============================================================
+
+if (API_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+  document.getElementById('setup-warn').style.display = 'block';
+}
+
+function go(tab) {
+  const names = ['feedback','factions','report'];
+  document.querySelectorAll('.nav button').forEach((b,i) => b.classList.toggle('on', names[i]===tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.getElementById('p-'+tab).classList.add('on');
+  document.getElementById('success').classList.remove('show');
+}
+
+function gv(id) { return document.getElementById(id)?.value?.trim() || ''; }
+
+function vld(id) {
+  const el = document.getElementById(id);
+  if (!el.value?.trim()) {
+    el.classList.add('err-field');
+    const e = document.getElementById('e-'+id);
+    if(e) e.classList.add('show');
+    return false;
+  }
+  return true;
+}
+
+async function submitForm(type) {
+  document.querySelectorAll('.err-field').forEach(el => el.classList.remove('err-field'));
+  document.querySelectorAll('.err-msg').forEach(el => el.classList.remove('show'));
+
+  // Always validate global identity
+  let ok = true;
+  if (!vld('g-user')) ok = false;
+  if (!vld('g-fac')) ok = false;
+
+  // Type-specific validation
+  if (type === 'report') {
+    if (!vld('rp-target')) ok = false;
+    if (!vld('rp-desc')) ok = false;
+  }
+  if (!ok) return;
+
+  const btn = document.querySelector('.panel.on .submit');
+  const orig = btn.textContent;
+  btn.textContent = 'SENDING...'; btn.disabled = true;
+
+  const user = gv('g-user');
+  const faction = gv('g-fac');
+  const data = { type, timestamp: new Date().toISOString(), user, faction };
+
+  if (type === 'feedback') {
+    Object.assign(data, {
+      tenure: gv('fb-tenure'),
+      enjoys: [...document.querySelectorAll('#fb-enjoys input:checked')].map(c => c.value).join(', '),
+      rating: document.querySelector('input[name="fb-rate"]:checked')?.value || '',
+      improvements: gv('fb-improve'),
+      shoutouts: gv('fb-shout')
+    });
+  } else if (type === 'factions') {
+    Object.assign(data, {
+      monarch: document.querySelector('input[name="r-monarch"]:checked')?.value || '', monarchComment: gv('c-monarch'),
+      nautilus: document.querySelector('input[name="r-nautilus"]:checked')?.value || '', nautilusComment: gv('c-nautilus'),
+      panda: document.querySelector('input[name="r-panda"]:checked')?.value || '', pandaComment: gv('c-panda'),
+      indie: document.querySelector('input[name="r-indie"]:checked')?.value || '', indieComment: gv('c-indie'),
+      bestFaction: gv('fr-best'), concerns: gv('fr-concerns')
+    });
+  } else if (type === 'report') {
+    Object.assign(data, {
+      target: gv('rp-target'), targetFaction: gv('rp-tfac'),
+      violations: [...document.querySelectorAll('#rp-violations input:checked')].map(c => c.value).join(', '),
+      severity: document.querySelector('input[name="rp-sev"]:checked')?.value || '',
+      description: gv('rp-desc'), witnesses: gv('rp-wit'), evidence: gv('rp-evi')
+    });
+  }
+
+  try {
+    if (API_URL !== 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+      await sendToGoogle(data);
+    }
+    // Clear form fields (but keep identity)
+    document.querySelectorAll('.panel input[type="text"], .panel textarea').forEach(e => e.value = '');
+    document.querySelectorAll('.panel select:not(#g-fac)').forEach(e => e.selectedIndex = 0);
+    document.querySelectorAll('.panel input[type="radio"], .panel input[type="checkbox"]').forEach(e => e.checked = false);
+
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+    document.getElementById('success').classList.add('show');
+  } catch(e) {
+    alert('Error submitting. Please try again.');
+  } finally {
+    btn.textContent = orig; btn.disabled = false;
+  }
+}
+
+// Reliable POST to Google Apps Script using hidden iframe
+function sendToGoogle(data) {
+  return new Promise((resolve) => {
+    const iframe = document.createElement('iframe');
+    iframe.name = 'bssmp_submit_frame';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = API_URL;
+    form.target = 'bssmp_submit_frame';
+
+    // Send entire JSON as one hidden field called "payload"
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(data);
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+    form.submit();
+
+    // Clean up after a short delay
+    setTimeout(() => {
+      form.remove();
+      iframe.remove();
+      resolve();
+    }, 2000);
+  });
+}
+
+function resetForm() {
+  document.getElementById('success').classList.remove('show');
+  go('feedback');
+}
+</script>
+</body>
+</html>
